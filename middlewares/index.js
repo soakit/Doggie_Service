@@ -4,10 +4,10 @@ const mongoose = require('mongoose')
 const User = mongoose.model('User')
 const robot = require('../service/robot')
 
-exports.signature = function* (next) {
-	const body = this.request.body
+exports.signature = async function (ctx, next) {
+	const body = ctx.request.body
 	const cloud = body.cloud
-	let data
+	let data = null
 
 	if (cloud === 'qiniu') {
 		data = robot.getQiniuToken(body)
@@ -15,10 +15,11 @@ exports.signature = function* (next) {
 		data = robot.getCloudinaryToken(body)
 	}
 
-	this.body = {
+	ctx.body = {
 		success: true,
 		data: data
 	}
+	await next()
 }
 
 exports.hasBody = async function (ctx, next) {
@@ -35,15 +36,15 @@ exports.hasBody = async function (ctx, next) {
 	await next()
 }
 
-exports.hasToken = function* (next) {
-	const accessToken = this.query.accessToken
+exports.hasToken = async function (ctx, next) {
+	const accessToken = ctx.query.accessToken
 
 	if (!accessToken) {
-		accessToken = this.request.body.accessToken
+		accessToken = ctx.request.body.accessToken
 	}
 
 	if (!accessToken) {
-		this.body = {
+		ctx.body = {
 			success: false,
 			err: '钥匙丢了'
 		}
@@ -51,13 +52,13 @@ exports.hasToken = function* (next) {
 		return next
 	}
 
-	const user = yield User.findOne({
+	const user = await User.findOne({
 			accessToken: accessToken
 		})
 		.exec()
 
 	if (!user) {
-		this.body = {
+		ctx.body = {
 			success: false,
 			err: '用户没登陆'
 		}
@@ -65,8 +66,8 @@ exports.hasToken = function* (next) {
 		return next
 	}
 
-	this.session = this.session || {}
-	this.session.user = user
+	ctx.session = ctx.session || {}
+	ctx.session.user = user
 
-	yield next
+	await next()
 }

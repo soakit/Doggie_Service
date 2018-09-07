@@ -51,5 +51,5 @@ app.listen(port)
 console.log(`Listening: ${port}`)
 
 app.on('error', (err, ctx) => {
-	log.error('server error', err, ctx)
+	console.error('server error', err, ctx)
 });

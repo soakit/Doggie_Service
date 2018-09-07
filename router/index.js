@@ -2,9 +2,13 @@
 
 const Router = require('koa-router')
 const User = require('../controllers/user')
-const App = require('../controllers/app')
 const Creation = require('../controllers/creation')
 const Comment = require('../controllers/comment')
+const {
+	hasBody,
+	hasToken,
+	signature
+} = require('../middlewares/')
 
 module.exports = function () {
 	const router = new Router({
@@ -12,25 +16,25 @@ module.exports = function () {
 	})
 
 	// user
-	router.post('/u/signup', App.hasBody, User.signup)
-	router.post('/u/verify', App.hasBody, User.verify)
-	router.post('/u/update', App.hasBody, App.hasToken, User.update)
+	router.post('/u/signup', hasBody, User.signup)
+	router.post('/u/verify', hasBody, User.verify)
+	router.post('/u/update', hasBody, hasToken, User.update)
 
 	// app
-	router.post('/signature', App.hasBody, App.hasToken, App.signature)
+	router.post('/signature', hasBody, hasToken, signature)
 
 	// creations
-	router.get('/creations', App.hasToken, Creation.find)
-	router.post('/creations', App.hasBody, App.hasToken, Creation.save)
-	router.post('/creations/video', App.hasBody, App.hasToken, Creation.video)
-	router.post('/creations/audio', App.hasBody, App.hasToken, Creation.audio)
+	router.get('/creations', hasToken, Creation.find)
+	router.post('/creations', hasBody, hasToken, Creation.save)
+	router.post('/creations/video', hasBody, hasToken, Creation.video)
+	router.post('/creations/audio', hasBody, hasToken, Creation.audio)
 
 	// comments
-	router.get('/comments', App.hasToken, Comment.find)
-	router.post('/comments', App.hasBody, App.hasToken, Comment.save)
+	router.get('/comments', hasToken, Comment.find)
+	router.post('/comments', hasBody, hasToken, Comment.save)
 
 	// votes
-	router.post('/up', App.hasBody, App.hasToken, Creation.up)
+	router.post('/up', hasBody, hasToken, Creation.up)
 
 	return router
 }
