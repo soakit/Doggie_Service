@@ -2,9 +2,10 @@
   "name": "doggie_service",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
   },
   "author": "",
   "license": "ISC",
@@ -14,7 +15,6 @@
     "koa": "^2.5.2",
     "koa-bodyparser": "^4.2.1",
     "koa-logger": "^3.2.0",
-    "koa-mongo": "^1.4.1",
     "koa-router": "^7.4.0",
     "koa-session": "^5.9.0",
     "lodash": "^4.17.10",
@@ -24,5 +24,8 @@
     "speakeasy": "^2.0.0",
     "uuid": "^3.3.2",
     "xss": "^1.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.4"
   }
 }

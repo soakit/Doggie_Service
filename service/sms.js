@@ -39,7 +39,7 @@ exports.send = function (phoneNumber, msg) {
 			}
 		}
 
-		const str = ''
+		let str = ''
 		const req = https.request(options, function (res) {
 			if (res.statusCode === 404) {
 				reject(new Error('短信服务器没有响应'))
@@ -52,7 +52,7 @@ exports.send = function (phoneNumber, msg) {
 				str += chunk
 			})
 			res.on('end', function () {
-				const data
+				let data
 
 				try {
 					data = JSON.parse(str)

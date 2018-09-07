@@ -13,9 +13,9 @@ qiniu.conf.SECRET_KEY = config.qiniu.SK
 cloudinary.config(config.cloudinary)
 
 exports.getQiniuToken = function (body) {
+	let putPolicy
 	const type = body.type
 	const key = uuid.v4()
-	const putPolicy
 	const options = {
 		persistentNotifyUrl: config.notify
 	}
@@ -75,8 +75,8 @@ exports.uploadToCloudinary = function (url) {
 exports.getCloudinaryToken = function (body) {
 	const type = body.type
 	const timestamp = body.timestamp
-	const folder
-	const tags
+	let folder
+	let tags
 
 	if (type === 'avatar') {
 		folder = 'avatar'

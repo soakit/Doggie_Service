@@ -7,10 +7,9 @@ const uuid = require('uuid')
 const sms = require('../service/sms')
 
 
-exports.signup = function* (next) {
-	const phoneNumber = xss(this.request.body.phoneNumber.trim())
-
-	const user = yield User.findOne({
+exports.signup = async function (ctx, next) {
+	const phoneNumber = xss(ctx.request.body.phoneNumber.trim())
+	let user = await User.findOne({
 		phoneNumber: phoneNumber
 	}).exec()
 
@@ -31,9 +30,9 @@ exports.signup = function* (next) {
 	}
 
 	try {
-		user = yield user.save()
+		user = await user.save()
 	} catch (e) {
-		this.body = {
+		ctx.body = {
 			success: false
 		}
 
@@ -47,7 +46,7 @@ exports.signup = function* (next) {
 	} catch (e) {
 		console.log(e)
 
-		this.body = {
+		ctx.body = {
 			success: false,
 			err: '短信服务异常'
 		}
@@ -55,7 +54,7 @@ exports.signup = function* (next) {
 		return next
 	}
 
-	this.body = {
+	ctx.body = {
 		success: true
 	}
 }

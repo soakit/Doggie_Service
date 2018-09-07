@@ -2,21 +2,20 @@
 
 const fs = require('fs')
 const path = require('path')
-const mongo = require('koa-mongo');
 const Koa = require('koa')
 const logger = require('koa-logger')
 const session = require('koa-session')
 const bodyParser = require('koa-bodyparser')
+const mongoose = require('mongoose')
 
 const {
 	port,
 	dbConfig
 } = require('./config/index')
 
-// const mongoose = require('mongoose')
-// const db = 'mongodb://localhost/imooc-app'
+mongoose.set('useCreateIndex', true);
 // mongoose.Promise = require('bluebird')
-// mongoose.connect(db)
+mongoose.connect(dbConfig, { useNewUrlParser: true })
 
 // 递归的形式，读取models文件夹下的js模型文件，并require
 const models_path = path.join(__dirname, './models')
@@ -39,13 +38,18 @@ const walk = function (modelPath) {
 walk(models_path)
 
 const app = new Koa()
+
+app.use(logger())
+app.use(session(app))
+app.use(bodyParser())
+
 const router = require('./router/index')()
-app.use(mongo(dbConfig))
-	.use(logger())
-	.use(session(app))
-	.use(bodyParser())
-	.use(router.routes())
+app.use(router.routes())
 	.use(router.allowedMethods())
 
 app.listen(port)
 console.log(`Listening: ${port}`)
+
+app.on('error', (err, ctx) => {
+	log.error('server error', err, ctx)
+});

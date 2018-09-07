@@ -62,7 +62,7 @@ exports.save = function* (next) {
 		return next
 	}
 
-	const comment
+	let comment
 
 	if (commentData.cid) {
 		comment = yield Comment.findOne({

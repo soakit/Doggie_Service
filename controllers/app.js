@@ -7,7 +7,7 @@ const robot = require('../service/robot')
 exports.signature = function* (next) {
 	const body = this.request.body
 	const cloud = body.cloud
-	const data
+	let data
 
 	if (cloud === 'qiniu') {
 		data = robot.getQiniuToken(body)
@@ -21,19 +21,18 @@ exports.signature = function* (next) {
 	}
 }
 
-exports.hasBody = function* (next) {
-	const body = this.request.body || {}
-
+exports.hasBody = async function (ctx, next) {
+	const body = ctx.request.body || {}
 	if (Object.keys(body).length === 0) {
-		this.body = {
+		ctx.body = {
 			success: false,
 			err: '是不是漏掉什么了'
 		}
 
-		return next
+		return
 	}
 
-	yield next
+	await next()
 }
 
 exports.hasToken = function* (next) {
