@@ -39,6 +39,8 @@ walk(models_path)
 
 const app = new Koa()
 
+app.keys = ['doggie_key'];
+
 app.use(logger())
 app.use(session(app))
 app.use(bodyParser())

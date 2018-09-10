@@ -7,7 +7,7 @@ const uuid = require('uuid')
 const sms = require('../service/sms')
 
 
-exports.signup = async function (ctx, next) {
+exports.signup = async function (ctx) {
 	const phoneNumber = xss(ctx.request.body.phoneNumber.trim())
 	let user = await User.findOne({
 		phoneNumber: phoneNumber
@@ -36,7 +36,7 @@ exports.signup = async function (ctx, next) {
 			success: false
 		}
 
-		return next
+		return
 	}
 
 	const msg = '您的注册验证码是：' + user.verifyCode
@@ -51,7 +51,7 @@ exports.signup = async function (ctx, next) {
 			err: '短信服务异常'
 		}
 
-		return next
+		return
 	}
 
 	ctx.body = {
@@ -59,29 +59,29 @@ exports.signup = async function (ctx, next) {
 	}
 }
 
-exports.verify = function* (next) {
-	const verifyCode = this.request.body.verifyCode
-	const phoneNumber = this.request.body.phoneNumber
+exports.verify = async function (ctx) {
+	const verifyCode = ctx.request.body.verifyCode
+	const phoneNumber = ctx.request.body.phoneNumber
 
 	if (!verifyCode || !phoneNumber) {
-		this.body = {
+		ctx.body = {
 			success: false,
 			err: '验证没通过'
 		}
 
-		return next
+		return
 	}
 
-	const user = yield User.findOne({
+	let user = await User.findOne({
 		phoneNumber: phoneNumber,
 		verifyCode: verifyCode
 	}).exec()
 
 	if (user) {
 		user.verified = true
-		user = yield user.save()
+		user = await user.save()
 
-		this.body = {
+		ctx.body = {
 			success: true,
 			data: {
 				nickname: user.nickname,
@@ -91,16 +91,16 @@ exports.verify = function* (next) {
 			}
 		}
 	} else {
-		this.body = {
+		ctx.body = {
 			success: false,
 			err: '验证未通过'
 		}
 	}
 }
 
-exports.update = function* (next) {
-	const body = this.request.body
-	const user = this.session.user
+exports.update = async function (ctx) {
+	const body = ctx.request.body
+	let user = ctx.session.user
 	const fields = 'avatar,gender,age,nickname,breed'.split(',')
 
 	fields.forEach(function (field) {
@@ -109,9 +109,9 @@ exports.update = function* (next) {
 		}
 	})
 
-	user = yield user.save()
+	user = await user.save()
 
-	this.body = {
+	ctx.body = {
 		success: true,
 		data: {
 			nickname: user.nickname,

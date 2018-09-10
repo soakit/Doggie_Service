@@ -37,7 +37,7 @@ exports.hasBody = async function (ctx, next) {
 }
 
 exports.hasToken = async function (ctx, next) {
-	const accessToken = ctx.query.accessToken
+	let accessToken = ctx.query.accessToken
 
 	if (!accessToken) {
 		accessToken = ctx.request.body.accessToken
