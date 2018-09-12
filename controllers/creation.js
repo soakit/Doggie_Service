@@ -10,10 +10,10 @@ const xss = require('xss')
 const robot = require('../service/robot')
 const config = require('../config/api')
 
-exports.up = function* (next) {
+exports.up = async function (next) {
 	const body = this.request.body
 	const user = this.session.user
-	const creation = yield Creation.findOne({
+	const creation = await Creation.findOne({
 			_id: body.id
 		})
 		.exec()
@@ -35,7 +35,7 @@ exports.up = function* (next) {
 
 	creation.up = creation.votes.length
 
-	yield creation.save()
+	await creation.save()
 
 	this.body = {
 		success: true
@@ -50,8 +50,8 @@ const userFields = [
 	'breed'
 ]
 
-exports.find = function* (next) {
-	const page = parseInt(this.query.page, 10) || 1
+exports.find = async function (ctx) {
+	const page = parseInt(ctx.query.page, 10) || 1
 	const count = 5
 	const offset = (page - 1) * count
 	const queryArray = [
@@ -64,12 +64,11 @@ exports.find = function* (next) {
 		.limit(count)
 		.populate('author', userFields.join(' '))
 		.exec(),
-		Creation.count({ finish: 100 }).exec()
+		Creation.countDocuments({ finish: 100 }).exec()
 	]
 
-	const data = yield queryArray
-
-	this.body = {
+	const data = await Promise.all(queryArray)
+	ctx.body = {
 		success: true,
 		data: data[0],
 		total: data[1]
@@ -172,7 +171,7 @@ function asyncMedia(videoId, audioId) {
 		})
 }
 
-exports.audio = function* (next) {
+exports.audio = async function (next) {
 	const body = this.request.body
 	const audioData = body.audio
 	const videoId = body.videoId
@@ -187,12 +186,12 @@ exports.audio = function* (next) {
 		return next
 	}
 
-	const audio = yield Audio.findOne({
+	const audio = await Audio.findOne({
 			public_id: audioData.public_id
 		})
 		.exec()
 
-	const video = yield Video.findOne({
+	const video = await Video.findOne({
 			_id: videoId
 		})
 		.exec()
@@ -209,7 +208,7 @@ exports.audio = function* (next) {
 		}
 
 		audio = new Audio(_audio)
-		audio = yield audio.save()
+		audio = await audio.save()
 	}
 
 	// 异步操作
@@ -222,7 +221,7 @@ exports.audio = function* (next) {
 }
 
 
-exports.video = function* (next) {
+exports.video = async function (next) {
 	const body = this.request.body
 	const videoData = body.video
 	const user = this.session.user
@@ -236,7 +235,7 @@ exports.video = function* (next) {
 		return next
 	}
 
-	const video = yield Video.findOne({
+	const video = await Video.findOne({
 			qiniu_key: videoData.key
 		})
 		.exec()
@@ -248,7 +247,7 @@ exports.video = function* (next) {
 			persistentId: videoData.persistentId
 		})
 
-		video = yield video.save()
+		video = await video.save()
 	}
 
 	const url = config.qiniu.video + video.qiniu_key
@@ -272,22 +271,22 @@ exports.video = function* (next) {
 	}
 }
 
-exports.save = function* (next) {
-	const body = this.request.body
+exports.save = async function (ctx, next) {
+	const body = ctx.request.body
 	const videoId = body.videoId
 	const audioId = body.audioId
 	const title = body.title
-	const user = this.session.user
+	const user = ctx.session.user
 
-	const video = yield Video.findOne({
+	const video = await Video.findOne({
 		_id: videoId
 	}).exec()
-	const audio = yield Audio.findOne({
+	const audio = await Audio.findOne({
 		_id: audioId
 	}).exec()
 
 	if (!video || !audio) {
-		this.body = {
+		ctx.body = {
 			success: false,
 			err: '音频或者视频素材不能为空'
 		}
@@ -295,7 +294,7 @@ exports.save = function* (next) {
 		return next
 	}
 
-	const creation = yield Creation.findOne({
+	const creation = await Creation.findOne({
 		audio: audioId,
 		video: videoId
 	}).exec()
@@ -330,15 +329,14 @@ exports.save = function* (next) {
 
 			creationData.finish += 30
 		}
-
 		creation = new Creation(creationData)
 	}
 
-	creation = yield creation.save()
+	creation = await creation.save()
 
 	console.log(creation)
 
-	this.body = {
+	ctx.body = {
 		success: true,
 		data: {
 			_id: creation._id,
