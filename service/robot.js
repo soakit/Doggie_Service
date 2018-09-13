@@ -7,38 +7,33 @@ const sha1 = require('sha1')
 const uuid = require('uuid')
 const config = require('../config/api')
 
-qiniu.conf.ACCESS_KEY = config.qiniu.AK
-qiniu.conf.SECRET_KEY = config.qiniu.SK
-
 cloudinary.config(config.cloudinary)
 
 exports.getQiniuToken = function (body) {
 	let putPolicy
+	let key = uuid.v4()
 	const type = body.type
-	const key = uuid.v4()
 	const options = {
 		persistentNotifyUrl: config.notify
 	}
 
 	if (type === 'avatar') {
-		// putPolicy.callbackUrl = 'http://your.domain.com/callback'
-		// putPolicy.callbackBody = 'filename=$(fname)&filesize=$(fsize)'
-		key += '.jpeg'
-		putPolicy = new qiniu.rs.PutPolicy('gougouavatar:' + key)
+		key += '.jpeg';
+		putPolicy = new qiniu.rs.PutPolicy("jsonz-app:" + key);
 	} else if (type === 'video') {
 		key += '.mp4'
-		options.scope = 'gougouvideo:' + key
-		options.persistentOps = 'avthumb/mp4/an/1'
-		putPolicy = new qiniu.rs.PutPolicy2(options)
+		options.scope = 'jsonz-video:' + key;
+		putPolicy = new qiniu.rs.PutPolicy(options);
+
 	} else if (type === 'audio') {
-		//
+		key += '.'
 	}
 
-	const token = putPolicy.token()
-
+	var mac = new qiniu.auth.digest.Mac(config.qiniu.AK, config.qiniu.SK);
+	const token = putPolicy.uploadToken(mac);
 	return {
-		key: key,
-		token: token
+		token,
+		key
 	}
 }
 
@@ -57,7 +52,7 @@ exports.saveToQiniu = function (url, key) {
 }
 
 exports.uploadToCloudinary = function (url) {
-	return new Promise(function (resolve, reject) {
+	return new Promise((resolve, reject) => {
 		cloudinary.uploader.upload(url, function (result) {
 			if (result && result.public_id) {
 				resolve(result)

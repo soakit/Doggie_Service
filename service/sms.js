@@ -6,31 +6,28 @@ const Promise = require('bluebird')
 const speakeasy = require('speakeasy')
 
 exports.getCode = function () {
-	const code = speakeasy.totp({
-		secret: 'imoocisnice',
-		digits: 4
-	})
-
-	return code
+	return speakeasy.totp({
+		secret: 'Jsonz',
+		digits: 4,
+	});
 }
 
 exports.send = function (phoneNumber, msg) {
-	return new Promise(function (resolve, reject) {
-		if (!phoneNumber) {
-			return reject(new Error('手机号为空了！'))
-		}
+	return new Promise((resolve, reject) => {
+		if (!phoneNumber) return reject(new Error('手机号为空了'))
 
-		const postData = {
+		let postData = {
 			mobile: phoneNumber,
-			message: msg + '【狗狗说】'
+			message: msg + ' 【Jsonz-RN】'
 		}
 
-		const content = querystring.stringify(postData)
-		const options = {
+		let content = querystring.stringify(postData)
+
+		let options = {
 			host: 'sms-api.luosimao.com',
 			path: '/v1/send.json',
 			method: 'POST',
-			auth: 'api:key-809096e2ffc3ec7accc5f85a862442d8',
+			auth: 'api:key-030379383823507beb8383a2cecbda4f',
 			agent: false,
 			rejectUnauthorized: false,
 			headers: {
@@ -40,25 +37,21 @@ exports.send = function (phoneNumber, msg) {
 		}
 
 		let str = ''
-		const req = https.request(options, function (res) {
-			if (res.statusCode === 404) {
-				reject(new Error('短信服务器没有响应'))
+		let req = https.request(options, _res => {
 
-				return
+			if (_res.statusCode === 404) {
+				return reject(new Error('短信服务器没有响应'));
 			}
 
-			res.setEncoding('utf8')
-			res.on('data', function (chunk) {
+			_res.setEncoding('utf8')
+			_res.on('data', function (chunk) {
 				str += chunk
 			})
-			res.on('end', function () {
+			_res.on('end', () => {
 				let data
-
 				try {
 					data = JSON.parse(str)
-				} catch (e) {
-					reject(e)
-				}
+				} catch (e) { reject(e) }
 
 				if (data.error === 0) {
 					resolve(data)

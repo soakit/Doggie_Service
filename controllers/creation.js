@@ -221,18 +221,18 @@ exports.audio = async function (next) {
 }
 
 
-exports.video = async function (next) {
-	const body = this.request.body
+exports.video = async function (ctx) {
+	const body = ctx.request.body
 	const videoData = body.video
-	const user = this.session.user
+	const user = ctx.session.user
 
 	if (!videoData || !videoData.key) {
-		this.body = {
+		ctx.body = {
 			success: false,
 			err: '视频没有上传成功！'
 		}
 
-		return next
+		return
 	}
 
 	const video = await Video.findOne({
@@ -265,7 +265,7 @@ exports.video = async function (next) {
 			}
 		})
 
-	this.body = {
+	ctx.body = {
 		success: true,
 		data: video._id
 	}

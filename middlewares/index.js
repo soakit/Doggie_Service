@@ -19,7 +19,7 @@ exports.signature = async function (ctx, next) {
 		success: true,
 		data: data
 	}
-	await next()
+	console.log(body, data)
 }
 
 exports.hasBody = async function (ctx, next) {
